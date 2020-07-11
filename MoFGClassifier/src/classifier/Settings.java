@@ -1,6 +1,9 @@
 package classifier;
 
+import java.util.List;
+
 public class Settings {
+    public List<Pattern> trainingPatterns;
     public int nRules;
     public int nRuleSets;
     public int nAntecedents;
@@ -9,6 +12,8 @@ public class Settings {
     public int nReplace;
     public double pCrossover;
     public double pMutation;
+    public double pDontCare;
+    public double pHybridMichigan;
 
     public Settings setNRules(int num) {
         this.nRules = num;
@@ -47,6 +52,21 @@ public class Settings {
 
     public Settings setPMutation(double p) {
         this.pMutation = p;
+        return this;
+    }
+
+    public Settings setPDontCare(double p) {
+        this.pDontCare = p;
+        return this;
+    }
+
+    public Settings setTrainingPatterns(List<Pattern> patterns) {
+        this.trainingPatterns = patterns;
+        return this;
+    }
+
+    public Settings setPHybridMichigan(double p) {
+        this.pHybridMichigan = p;
         return this;
     }
 }

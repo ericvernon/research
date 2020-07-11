@@ -21,18 +21,17 @@ class UtilTest {
         // 2: 3/9 (1+2, 2+1, or 2+2)
         // 3: 5/9 (one or both candidates were 3)
         testList = new ArrayList<>();
+        testList.add(3);
         testList.add(1);
         testList.add(2);
-        testList.add(3);
         int[] results = new int[4];
-        for (int i = 0; i < 1800; i++) {
+        for (int i = 0; i < 18000; i++) {
             int result = util.binaryTournament(testList);
             results[result]++;
         }
-        // Roughly 3 standard deviations of what's expected.
         assertEquals(0, results[0]);
-        assertTrue(results[1] > 160 && results[1] < 235);
-        assertTrue(results[2] > 535 && results[2] < 660);
-        assertTrue(results[3] > 935 && results[3] < 1050);
+        assertTrue(results[1] > 1800 && results[1] < 2200);
+        assertTrue(results[2] > 5800 && results[2] < 6200);
+        assertTrue(results[3] > 9800 && results[3] < 10200);
     }
 }

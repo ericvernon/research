@@ -1,7 +1,9 @@
 package classifier;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 
 /**
  * Represents a Pittsburgh-style population of rules
@@ -9,6 +11,10 @@ import java.util.List;
 public class RuleSet implements Comparable<RuleSet> {
     private final List<Rule> rules;
     private int fitness;
+    private int rank;
+    private double crowdingScore;
+    private double[] objectives;
+    private double[] rejectThresholds = {0.0, 0.0};
 
     public RuleSet() {
         this(new ArrayList<>());
@@ -28,20 +34,51 @@ public class RuleSet implements Comparable<RuleSet> {
 
     public Rule getWinningRule(Pattern pattern) {
         FuzzyCalculator fuzzyCalculator = FuzzyCalculator.getInstance();
-        Rule bestRule = null;
-        double bestScore = 0;
+        PriorityQueue<ScoreToRule> queue = new PriorityQueue<>(this.rules.size(), Comparator.reverseOrder());
 
         for (Rule rule : this.rules) {
             double score = rule.getConfidence() * fuzzyCalculator.calculateCompatibility(rule, pattern);
-            if (score > bestScore) {
-                bestScore = score;
-                bestRule = rule;
-            } else if (score == bestScore && bestRule != null && bestRule.getClassLabel() != rule.getClassLabel()) {
-                bestRule = null;
+            if (score <= 0)
+                continue;
+            ScoreToRule scoreToLabel = new ScoreToRule();
+            scoreToLabel.score = score;
+            scoreToLabel.rule = rule;
+            queue.add(scoreToLabel);
+        }
+
+        if (queue.size() == 0)
+            return null;
+
+        ScoreToRule bestRule = queue.poll();
+        ScoreToRule secondBestRule = null;
+
+        while (!queue.isEmpty()) {
+            secondBestRule = queue.poll();
+            if (secondBestRule.rule.getClassLabel() != bestRule.rule.getClassLabel()) {
+                break;
             }
         }
 
-        return bestRule;
+        Rule winner = bestRule.rule;
+        int winnerClass = winner.getClassLabel();
+        double rejectThreshold = this.rejectThresholds[winnerClass];
+        if (secondBestRule != null) {
+            double theta = (bestRule.score - secondBestRule.score) / bestRule.score;
+            if (theta < rejectThreshold)
+                winner = null;
+        }
+
+        return winner;
+    }
+
+    private static class ScoreToRule implements Comparable<ScoreToRule> {
+        public double score;
+        public Rule rule;
+
+        @Override
+        public int compareTo(ScoreToRule scoreToLabel) {
+            return Double.compare(this.score, scoreToLabel.score);
+        }
     }
 
     public void setFitness(List<Pattern> patterns) {
@@ -72,7 +109,11 @@ public class RuleSet implements Comparable<RuleSet> {
     // This implementation is *not* considered consistent with equals.
     @Override
     public int compareTo(RuleSet o) {
-        return this.fitness - o.fitness;
+        if (this.rank != o.getRank()) {
+            return this.rank - o.getRank();
+        } else {
+            return Double.compare(this.crowdingScore, o.getCrowdingScore());
+        }
     }
 
     public RuleSet deepCopy() {
@@ -81,11 +122,60 @@ public class RuleSet implements Comparable<RuleSet> {
             copy.addRule(rule.deepCopy());
         }
         copy.overrideFitness(this.fitness);
+        copy.setCrowdingScore(this.getCrowdingScore());
+        copy.setRank(this.getRank());
+        double[] obj = new double[this.objectives.length];
+        System.arraycopy(this.objectives, 0, obj, 0, this.objectives.length);
+        copy.setObjectives(obj);
+        double[] thresholds = new double[this.rejectThresholds.length];
+        System.arraycopy(this.rejectThresholds, 0, thresholds, 0, this.rejectThresholds.length);
+        copy.setRejectThresholds(thresholds);
         return copy;
+    }
+
+    public List<Pattern> getBadPatterns(List<Pattern> patterns) {
+        List<Pattern> badPatterns = new ArrayList<>();
+        for (Pattern pattern : patterns) {
+            if (this.classify(pattern) != pattern.classLabel)
+                badPatterns.add(pattern);
+        }
+        return badPatterns;
     }
 
     private void overrideFitness(int value) {
         this.fitness = value;
     }
 
+
+    public int getRank() {
+        return rank;
+    }
+
+    public void setRank(int rank) {
+        this.rank = rank;
+    }
+
+    public double getCrowdingScore() {
+        return crowdingScore;
+    }
+
+    public void setCrowdingScore(double crowdingScore) {
+        this.crowdingScore = crowdingScore;
+    }
+
+    public double[] getObjectives() {
+        return objectives;
+    }
+
+    public void setObjectives(double[] objectives) {
+        this.objectives = objectives;
+    }
+
+    public double[] getRejectThresholds() {
+        return rejectThresholds;
+    }
+
+    public void setRejectThresholds(double[] rejectThreshold) {
+        this.rejectThresholds = rejectThreshold;
+    }
 }

@@ -2,10 +2,13 @@ package main;
 
 import classifier.*;
 import classifier.Settings;
-import random.MersenneTwister;
+import nsga.MOP;
+import nsga.NSGA2;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
-import java.util.Random;
 
 public class Main {
 
@@ -14,66 +17,80 @@ public class Main {
     }
 
     private static void run() {
-        Random random = new MersenneTwister(77);
-        System.out.println(random.nextFloat());
-        System.out.println(random.nextFloat());
-        System.out.println(random.nextFloat());
+        int nCorrect = 0;
+        int nRej = 0;
+        int nWrong = 0;
 
-        int rightM = 0;
-        int rightP = 0;
-
-        String dataset = "wine";
+        String dataset = "pima";
         FileData fd = new FileData();
         int[] metadata = fd.getMetadata(dataset);
 
-        Settings michiganSettings = new Settings();
-        michiganSettings.setNAntecedents(15)
+        Settings hybridSettings = new Settings();
+        hybridSettings.setNAntecedents(15)
                 .setNInputAttributes(metadata[1]).setNOutputClasses(metadata[2])
-                .setNRules(10).setNRuleSets(1)
+                .setNRules(20).setNRuleSets(200)
                 .setPCrossover(0.9).setPMutation(1.0/metadata[1])
-                .setNReplace(2);
-
-        Settings pittsburghSettings = new Settings();
-        pittsburghSettings.setNAntecedents(15)
-                .setNInputAttributes(metadata[1]).setNOutputClasses(metadata[2])
-                .setNRules(10).setNRuleSets(200)
-                .setPCrossover(0.9).setPMutation(1.0/metadata[1]);
+                .setPDontCare(0.8).setPHybridMichigan(0.5);
 
         int numRuns = 1;
+        int numGenerations = 2000;
         for (int i = 0; i < numRuns; i++) {
-            List<Pattern> trainingData = fd.getData(dataset);
-//            Classifier michigan = new MichiganClassifier(trainingData, michiganSettings, 0);
-            Classifier pittsburgh = new PittsburghClassifier(trainingData, pittsburghSettings, 5);
-            long t1 = System.nanoTime();
-//            michigan.train(1000);
-            pittsburgh.train(10);
-            long t2 = System.nanoTime();
-            System.out.println("Execution time: " + ((t2 - t1) * 1e-6) + " milliseconds");
+            //List<Pattern> trainingData = fd.getData(dataset);
+            List<Pattern> trainingData = fd.load("C:\\Users\\ericv\\code\\keel-data-ev\\pima\\set-1\\pima-10dobscv-1tra-normalized.dat").patterns;
+            hybridSettings.setTrainingPatterns(trainingData);
+            Classifier hybrid = new HybridClassifier(trainingData, hybridSettings, (i * 10) + 2);
 
-            for (Pattern pattern : trainingData) {
-                int output;
-//                output = michigan.classify(pattern);
-//                if (output == pattern.classLabel)
-//                    rightM++;
+            hybrid.train(numGenerations);
 
-                output = pittsburgh.classify(pattern);
-                if (output == pattern.classLabel)
-                    rightP++;
+            try {
+                FileWriter file = new FileWriter("C:\\Users\\ericv\\Desktop\\training.txt");
+                for (RuleSet ruleSet : hybrid.getPopulation().getRuleSets()) {
+                    file.write(String.format("%.6f,%d,%d\n", ruleSet.getObjectives()[0], (int) ruleSet.getObjectives()[1], ruleSet.getRank()));
+                }
+                file.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-//            List<Pattern> testData = fd.getData("iris", "tst", i + 1);
-//            for (Pattern pattern : testData) {
-//                int output = classifier.classify(pattern);
+            List<Pattern> testingData = fd.load("C:\\Users\\ericv\\code\\keel-data-ev\\pima\\set-1\\pima-10dobscv-1tst-normalized.dat").patterns;
+            MOP mop = new MOP(testingData);
+            NSGA2 nsga2 = new NSGA2(mop);
+            nsga2.solve(hybrid.getPopulation().getRuleSets());
+
+//            for (Pattern pattern : trainingData) {
+//                int output;
+//                output = hybrid.classify(pattern);
 //                if (output == pattern.classLabel)
-//                    rightTst++;
+//                    nCorrect++;
+//                else if (output == Rule.REJECTED_CLASS_LABEL)
+//                    nRej++;
 //                else
-//                    wrongTst++;
+//                    nWrong++;
 //            }
+
+            try {
+                FileWriter file = new FileWriter("C:\\Users\\ericv\\Desktop\\testing.txt");
+                for (RuleSet ruleSet : hybrid.getPopulation().getRuleSets()) {
+                    file.write(String.format("%.6f,%d,%d\n", ruleSet.getObjectives()[0], (int) ruleSet.getObjectives()[1], ruleSet.getRank()));
+                }
+                file.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                FileWriter file = new FileWriter("C:\\Users\\ericv\\Desktop\\weights.txt");
+                for (RuleSet ruleSet : hybrid.getPopulation().getRuleSets()) {
+                    file.write(String.format("%.6f,%.6f,%.6f, %d\n", ruleSet.getObjectives()[0],
+                                ruleSet.getRejectThresholds()[0], ruleSet.getRejectThresholds()[1], ruleSet.getRank()));
+                }
+                file.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        //System.out.println();
-        //System.out.printf("[TRAIN] %d/%d (%.2f)\n", rightTr, rightTr + wrongTr, (rightTr * 100.0) / (rightTr + wrongTr));
-        System.out.printf("M: %.6f\n", (rightM * 100.0) / (metadata[0] * numRuns));
-        System.out.printf("P: %.6f\n", (rightP * 100.0) / (metadata[0] * numRuns));
-//        System.out.printf("[TEST]  %d/%d (%.2f)\n", rightTst, rightTst + wrongTst, (rightTst * 100.0) / (rightTst + wrongTst));
+//        int totalPatterns = metadata[0] * numRuns;
+//        System.out.printf("H: %.6f %.6f %.6f\n", (nCorrect * 100.0) / totalPatterns,
+//                (nRej * 100.0) / totalPatterns, (nWrong * 100.0) / totalPatterns);
     }
 }

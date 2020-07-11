@@ -9,11 +9,12 @@ public class MichiganClassifier extends Classifier {
 
     @Override
     public void train(int gen) {
-        Genetics genetics = new Genetics(this.ruleFactory, this.trainingPatterns, this.random, this.settings);
+        Genetics genetics = new Genetics(this.ruleFactory, this.trainingPatterns, this.random, this.settings, null);
         for (int i = 0; i < gen; i++) {
-            RuleSet ruleSet = this.population.getRuleSets().get(0);
+            RuleSet oldRules = this.population.getRuleSets().get(0);
+            RuleSet newRules = genetics.michiganEvolution(oldRules);
             this.population = new Population();
-            population.addRuleSet(genetics.michiganEvolution(ruleSet));
+            this.population.addRuleSet(newRules);
             population.setFitness(this.trainingPatterns);
         }
     }

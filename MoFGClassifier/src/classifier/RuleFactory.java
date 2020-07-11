@@ -58,7 +58,7 @@ public class RuleFactory {
         }
 
         for (int i = 0; i < antecedents.length; i++) {
-            boolean dontCare = this.random.nextDouble() < 0.5;
+            boolean dontCare = this.random.nextDouble() < this.settings.pDontCare;
             if (dontCare)
                 antecedents[i] = FuzzyCalculator.DONT_CARE;
         }

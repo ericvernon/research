@@ -30,7 +30,7 @@ public class Population {
     }
 
     public int classify(Pattern pattern) {
-        this.ruleSets.sort(Collections.reverseOrder());
+        Collections.sort(this.ruleSets);
         return this.ruleSets.get(0).classify(pattern);
     }
 }

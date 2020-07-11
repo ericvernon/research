@@ -10,12 +10,9 @@ public class PittsburghClassifier extends Classifier {
 
     @Override
     public void train(int gen) {
-        Genetics genetics = new Genetics(this.ruleFactory, this.trainingPatterns, this.random, this.settings);
+        Genetics genetics = new Genetics(this.ruleFactory, this.trainingPatterns, this.random, this.settings, null);
         for (int i = 0; i < gen; i++) {
             this.population = genetics.pittsburghEvolution(this.population);
-            this.population.getRuleSets().sort(Collections.reverseOrder());
-            this.population.setFitness(this.trainingPatterns);
-            this.population.setFitness(this.trainingPatterns);
         }
     }
 }
