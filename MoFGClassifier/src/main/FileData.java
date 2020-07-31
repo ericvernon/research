@@ -28,43 +28,6 @@ public class FileData {
         }
     }
 
-    public int[] getMetadata(String name) {
-        String filename = String.format("C:\\Users\\ericv\\code\\keel-data-ev\\%s\\%s-normalized.dat", name, name);
-        Scanner sc = null;
-        try {
-            sc = new Scanner(new File(filename));
-            String line = sc.nextLine();
-            String bits[] = line.split(",");
-            int numPatterns = Integer.parseInt(bits[0]);
-            int numInputs = Integer.parseInt(bits[1]);
-            int numLabels = Integer.parseInt(bits[2]);
-            return new int[] { numPatterns, numInputs, numLabels};
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public List<Pattern> getData(String name) {
-        List<Pattern> patterns = new ArrayList<>();
-        String filename = String.format("C:\\Users\\ericv\\code\\keel-data-ev\\%s\\%s-normalized.dat", name, name);
-        Scanner sc = null;
-        try {
-            sc = new Scanner(new File(filename));
-            String line = sc.nextLine();
-            String bits[] = line.split(",");
-            int numPatterns = Integer.parseInt(bits[0]);
-            int numInputs = Integer.parseInt(bits[1]);
-            int numLabels = Integer.parseInt(bits[2]);
-            for (int i = 0; i < numPatterns; i++)
-                patterns.add(this.parsePattern(sc.nextLine(), numInputs));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        return patterns;
-    }
-
     private Pattern parsePattern(String line, int numInputs) {
         String[] bits = line.split(",");
         double[] inputs = new double[numInputs];

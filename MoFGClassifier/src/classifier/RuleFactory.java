@@ -1,10 +1,5 @@
 package classifier;
 
-//import main.Settings;
-
-import main.Watch;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -75,20 +70,30 @@ public class RuleFactory {
         double[] scores = new double[this.settings.nOutputClasses];
         double best = 0.0;
         int bestIndex = 0;
+
+        double[] labelCompatibility = new double[this.settings.nOutputClasses];
+        double totalCompatibility = 0;
+        for (Pattern pattern : this.trainingPatterns) {
+            double compatibility = this.fuzzyCalculator.calculateCompatibility(antecedents, pattern);
+            labelCompatibility[pattern.classLabel] += compatibility;
+            totalCompatibility += compatibility;
+        }
         for (int possibleLabel = 0; possibleLabel < scores.length; possibleLabel++) {
-            double score = this.calculateConfidenceInLabel(antecedents, possibleLabel);
-            scores[possibleLabel] = score;
-            if (score > best) {
-                best = score;
+            if (labelCompatibility[possibleLabel] > best) {
+                best = labelCompatibility[possibleLabel];
                 bestIndex = possibleLabel;
             }
         }
-
         double weight = best;
         for (int label = 0; label < scores.length; label++) {
             if (label != bestIndex)
-                weight -= scores[label];
+                weight -= labelCompatibility[label];
         }
+
+        if (totalCompatibility == 0)
+            weight = 0;
+        else
+            weight /= totalCompatibility;
 
         int classLabel;
         if (weight < 0)
@@ -98,21 +103,6 @@ public class RuleFactory {
         weight = Math.max(0.0, weight);
 
         return new LabelAndWeight(classLabel, weight);
-    }
-
-    private double calculateConfidenceInLabel(int[] antecedents, int classLabel) {
-        double labelCompatibility = 0;
-        double totalCompatibility = 0;
-        for (Pattern pattern : this.trainingPatterns) {
-            double compatibility = this.fuzzyCalculator.calculateCompatibility(antecedents, pattern);
-            if (pattern.classLabel == classLabel)
-                labelCompatibility += compatibility;
-            totalCompatibility += compatibility;
-        }
-
-        if (totalCompatibility == 0.0)
-            return 0;
-        return labelCompatibility / totalCompatibility;
     }
 
     private static class LabelAndWeight {

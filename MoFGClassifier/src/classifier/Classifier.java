@@ -5,15 +5,16 @@ package classifier;
  * When the factory has finished building a rule set, call ruleSet.setFitnessValues()
  */
 
+import nsga.MOP;
+import nsga.NSGA2;
 import random.MersenneTwister;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-//import main.Settings;
 
-public abstract class Classifier {
+public class Classifier {
 
     protected int randomSeed;
     protected Settings settings;
@@ -22,30 +23,22 @@ public abstract class Classifier {
     protected RuleFactory ruleFactory;
     protected Population population;
 
-    public Classifier(List<Pattern> trainingPatterns, Settings settings, int randomSeed) {
+    public Classifier(Settings settings, int randomSeed) {
         this.randomSeed = randomSeed;
-        this.trainingPatterns = trainingPatterns;
+        this.trainingPatterns = settings.trainingPatterns;
         this.settings = settings;
         this.random = new MersenneTwister(randomSeed);
         this.ruleFactory = new RuleFactory(trainingPatterns, settings, this.random);
+        this.population = this.buildInitialPopulation();
     }
 
-    public abstract void train(int gen);
-//        Genetics genetics = new Genetics(this.ruleFactory, this.trainingPatterns, this.random);
-//        for (int i = 0; i < gen; i++) {
-//            List<Pattern> misclassifiedPatterns = this.getBadPatterns();
-//            this.population = genetics.evolvePopulation(this.population, misclassifiedPatterns);
-//            this.population.setFitness(trainingPatterns);
-//        }
-//    }
-
-    protected List<Pattern> getBadPatterns() {
-        List<Pattern> badPatterns = new ArrayList<>();
-        for (Pattern pattern : this.trainingPatterns) {
-            if (this.classify(pattern) != pattern.classLabel)
-                badPatterns.add(pattern);
+    public void train(int gen) {
+        NSGA2 nsga2 = new NSGA2(new MOP(this.trainingPatterns));
+        Genetics genetics = new Genetics(this.ruleFactory, this.trainingPatterns, this.random, this.settings, nsga2);
+        for (int i = 0; i < gen; i++) {
+            this.population = genetics.hybridEvolution(this.population);
+            this.population.setFitness(this.trainingPatterns);
         }
-        return badPatterns;
     }
 
     protected Population buildInitialPopulation() {

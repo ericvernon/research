@@ -19,12 +19,13 @@ public class ClassifierTest {
         this.settings = new Settings()
                 .setNAntecedents(15)
                 .setNInputAttributes(this.testData.nAttributes)
-                .setNOutputClasses(this.testData.nOutputClasses);
+                .setNOutputClasses(this.testData.nOutputClasses)
+                .setTrainingPatterns(testData.patterns);
     }
 
     @Test
     public void testClassification() {
-        Classifier classifier = new MichiganClassifier(this.testData.patterns, this.settings, 0);
+        Classifier classifier = new Classifier(this.settings, 0);
         RuleFactory factory = new RuleFactory(this.testData.patterns, this.settings, new MersenneTwister());
 
         RuleSet ruleSet = new RuleSet();
