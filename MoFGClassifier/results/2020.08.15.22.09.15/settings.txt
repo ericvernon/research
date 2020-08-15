@@ -1,0 +1,14 @@
+nRules - 20
+nRuleSets - 200
+nAntecedents - 15
+nInputAttributes - 8
+nOutputClasses - 2
+nReplace - 0
+pCrossover - 0.9
+pMutation - 0.125
+pDontCare - 0.8
+pHybridMichigan - 0.5
+note - null
+rejectStrategy - STATIC
+rejectThreshold - 0.50505
+

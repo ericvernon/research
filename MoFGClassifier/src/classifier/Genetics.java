@@ -117,7 +117,7 @@ public class Genetics {
 
         double[] thresholds;
         if (doCrossover) {
-            thresholds = thresholdCrossover(first.getRejectThresholds(), second.getRejectThresholds());
+            thresholds = this.thresholdCrossover(first.getRejectThresholds(), second.getRejectThresholds());
         } else {
             thresholds = second.getRejectThresholds();
         }
@@ -131,34 +131,67 @@ public class Genetics {
 
     private double[] thresholdCrossover(double[] first, double[] second) {
         double[] result = new double[first.length];
-        for (int i = 0; i < first.length; i++) {
-            double x1 = first[i];
-            double x2 = second[i];
-            double d = Math.abs(x2 - x1);
-            double da = d * 0.5; // alpha = 0.5
-            double min = Math.min(x1, x2) - da;
-            double max = Math.max(x1, x2) + da;
-            double val = this.random.nextFloat();
-            val *= (max - min); // [0, (max - min)]
-            val += min; // [min, max]
-            val = Math.max(0.0, val);
-            val = Math.min(1.0, val);
-            result[i] = val;
+
+        if (this.settings.rejectStrategy == Settings.RejectStrategies.PER_CLASS) {
+            for (int i = 0; i < first.length; i++) {
+                double x1 = first[i];
+                double x2 = second[i];
+                double val = alphaBlend(x1, x2);
+                result[i] = val;
+            }
+        } else if (this.settings.rejectStrategy == Settings.RejectStrategies.SINGLE_VARIABLE) {
+            double val = this.alphaBlend(first[0], second[0]);
+            for (int i = 0; i < first.length; i++) {
+                result[i] = val;
+            }
+        } else if (this.settings.rejectStrategy == Settings.RejectStrategies.STATIC) {
+            System.arraycopy(first, 0, result, 0, first.length);
+        } else {
+            System.out.println("Unknown reject strategy!");
         }
+
         return result;
+
+    }
+
+    private double alphaBlend(double x1, double x2) {
+        double d = Math.abs(x2 - x1);
+        double da = d * 0.5; // alpha = 0.5
+        double min = Math.min(x1, x2) - da;
+        double max = Math.max(x1, x2) + da;
+        double val = this.random.nextFloat();
+        val *= (max - min); // [0, (max - min)]
+        val += min; // [min, max]
+        val = Math.max(0.0, val);
+        val = Math.min(1.0, val);
+        return val;
     }
 
     private double[] thresholdMutation(double[] input) {
         double[] result = new double[input.length];
-        for (int i = 0; i < input.length; i++) {
+
+        if (this.settings.rejectStrategy == Settings.RejectStrategies.PER_CLASS) {
+            for (int i = 0; i < input.length; i++) {
+                double val = this.random.nextFloat() / 10; // [0, 0.1]
+                val -= 0.05; // [-0.05, 0.05]
+                val += input[i];
+                if (val < 0.0)
+                    val = 0.0;
+                if (val > 1.0)
+                    val = 1.0;
+                result[i] = val;
+            }
+        } else if (this.settings.rejectStrategy == Settings.RejectStrategies.SINGLE_VARIABLE) {
             double val = this.random.nextFloat() / 10; // [0, 0.1]
             val -= 0.05; // [-0.05, 0.05]
-            val += input[i];
-            if (val < 0.0)
-                val = 0.0;
-            if (val > 1.0)
-                val = 1.0;
-            result[i] = val;
+            val += input[0];
+            for (int i = 0; i < input.length; i++) {
+                result[i] = val;
+            }
+        } else if (this.settings.rejectStrategy == Settings.RejectStrategies.STATIC) {
+            System.arraycopy(input, 0, result, 0, input.length);
+        } else {
+            System.out.println("Unknown reject strategy!");
         }
         return result;
     }

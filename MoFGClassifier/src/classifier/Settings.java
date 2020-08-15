@@ -17,6 +17,12 @@ public class Settings {
     public double pHybridMichigan;
     public String note;
 
+    public enum RejectStrategies {
+            PER_CLASS, SINGLE_VARIABLE, STATIC,
+    }
+    public RejectStrategies rejectStrategy;
+    public double rejectThreshold;
+
     public Settings setNRules(int num) {
         this.nRules = num;
         return this;
@@ -74,6 +80,16 @@ public class Settings {
 
     public Settings setNote(String note) {
         this.note = note;
+        return this;
+    }
+
+    public Settings setRejectStrategy(RejectStrategies strategy) {
+        this.rejectStrategy = strategy;
+        return this;
+    }
+
+    public Settings setRejectThreshold(double threshold) {
+        this.rejectThreshold = threshold;
         return this;
     }
 

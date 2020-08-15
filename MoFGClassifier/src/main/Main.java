@@ -7,6 +7,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -18,26 +19,34 @@ public class Main {
     public static void main(String[] args) {
         dataset = "pima";
 
+        Settings settings = new Settings();
+        settings.setRejectStrategy(Settings.RejectStrategies.PER_CLASS);
+        run(settings);
+
+        settings.setRejectStrategy(Settings.RejectStrategies.SINGLE_VARIABLE);
+        run(settings);
+
+        settings.setRejectStrategy(Settings.RejectStrategies.STATIC).setRejectThreshold(0.0);
+        run(settings);
+
+        settings.setRejectStrategy(Settings.RejectStrategies.STATIC).setRejectThreshold(0.2);
+        run(settings);
+    }
+
+    private static void run(Settings settings) {
         String time = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
         System.out.println(time);
         startTimestamp = time;
 
-        run();
-
-        System.out.println(new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()));
-    }
-
-    private static void run() {
         String dataset = "pima";
         FileData fd = new FileData();
 
         int numRuns = 1;
-        int numGenerations = 250;
+        int numGenerations = 5000;
 
         for (int i = 0; i < numRuns; i++) {
             FileData.Output trainingData = fd.load(getFilenameFromDataset(dataset, i, "tra"));
 
-            Settings settings = new Settings();
             settings.setNAntecedents(15)
                     .setNInputAttributes(trainingData.nAttributes).setNOutputClasses(trainingData.nOutputClasses)
                     .setNRules(20).setNRuleSets(200)
@@ -48,6 +57,8 @@ public class Main {
             hybrid.train(numGenerations);
             writeResults(hybrid, settings);
         }
+
+        System.out.println(new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()));
     }
 
     private static void writeResults(Classifier classifier, Settings settings) {
@@ -67,6 +78,7 @@ public class Main {
             PrintWriter matrixWriterTrain = new PrintWriter("results\\" + startTimestamp + "\\train\\matrix.txt", "UTF-8");
             PrintWriter metricsWriterTest = new PrintWriter("results\\" + startTimestamp + "\\test\\metrics.txt", "UTF-8");
             PrintWriter matrixWriterTest = new PrintWriter("results\\" + startTimestamp + "\\test\\matrix.txt", "UTF-8");
+            PrintWriter solutionsWriter = new PrintWriter("results\\" + startTimestamp + "\\solutions.txt", "UTF-8");
 
             for (int solution = 0; solution < settings.nRuleSets; solution++) {
                 RuleSet ruleSet = classifier.getPopulation().getRuleSets().get(solution);
@@ -76,12 +88,14 @@ public class Main {
                 printMatrix(matrixWriterTrain, confusionTrain);
                 metricsWriterTest.println(1 - gMean(confusionTest) + "," + totalRejected(confusionTest) + ", " + ruleSet.getRank());
                 printMatrix(matrixWriterTest, confusionTest);
+                printSolution(solutionsWriter, ruleSet, solution);
             }
 
             metricsWriterTrain.close();
             matrixWriterTrain.close();
             metricsWriterTest.close();
             matrixWriterTest.close();
+            solutionsWriter.close();
         } catch (IOException ex) {
             System.out.println("ERROR!  IO Exception: " + ex.getMessage());
         }
@@ -135,9 +149,20 @@ public class Main {
         writer.println();
     }
 
+    private static void printSolution(PrintWriter writer, RuleSet solution, int index) {
+        writer.println("i: " + index);
+        writer.println("Reject Thresholds:");
+        writer.println(Arrays.toString(solution.getRejectThresholds()));
+        writer.println("Rules:");
+        for (Rule rule : solution.getRules())
+            writer.println(rule);
+        writer.println();
+        writer.println();
+    }
+
     private static String getFilenameFromDataset(String dataset, int fold, String trainOrTest) {
-        // return String.format("C:\\Users\\Eric\\data\\%s\\set-1\\%s-10dobscv-%d%s-normalized.dat",
-        return String.format("C:\\Users\\ericv\\code\\keel-data-ev\\%s\\set-1\\%s-10dobscv-%d%s-normalized.dat",
+         return String.format("C:\\Users\\Eric\\data\\%s\\set-1\\%s-10dobscv-%d%s-normalized.dat",
+        //return String.format("C:\\Users\\ericv\\code\\keel-data-ev\\%s\\set-1\\%s-10dobscv-%d%s-normalized.dat",
                 dataset, dataset, fold + 1, trainOrTest);
     }
 }

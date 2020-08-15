@@ -47,8 +47,20 @@ public class Classifier {
                 ruleSet.addRule(rule);
             }
             double[] thresholds = new double[this.settings.nOutputClasses];
-            for (int i = 0; i < thresholds.length; i++)
-                thresholds[i] = this.random.nextDouble() / 2;
+
+            if (this.settings.rejectStrategy == Settings.RejectStrategies.PER_CLASS) {
+                for (int i = 0; i < thresholds.length; i++)
+                    thresholds[i] = this.random.nextDouble() / 2;
+            } else if (this.settings.rejectStrategy == Settings.RejectStrategies.SINGLE_VARIABLE) {
+                double val = this.random.nextDouble() / 2;
+                for (int i = 0; i < thresholds.length; i++)
+                    thresholds[i] = val;
+            } else if (this.settings.rejectStrategy == Settings.RejectStrategies.STATIC) {
+                for (int i = 0; i < thresholds.length; i++)
+                    thresholds[i] = this.settings.rejectThreshold;
+            } else {
+                System.out.println("Unsupported reject strategy!");
+            }
             ruleSet.setRejectThresholds(thresholds);
 
             population.addRuleSet(ruleSet);
