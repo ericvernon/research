@@ -1,15 +1,9 @@
 package classifier;
 
-/*
- * Have "classify" be a function of the RuleSet --- ruleSet.classify()
- * When the factory has finished building a rule set, call ruleSet.setFitnessValues()
- */
-
 import nsga.MOP;
 import nsga.NSGA2;
 import random.MersenneTwister;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -33,12 +27,13 @@ public class Classifier {
     }
 
     public void train(int gen) {
-        NSGA2 nsga2 = new NSGA2(new MOP(this.trainingPatterns));
+        NSGA2 nsga2 = new NSGA2(new MOP(this.trainingPatterns, this.settings));
         Genetics genetics = new Genetics(this.ruleFactory, this.trainingPatterns, this.random, this.settings, nsga2);
         for (int i = 0; i < gen; i++) {
             this.population = genetics.hybridEvolution(this.population);
             this.population.setFitness(this.trainingPatterns);
         }
+        nsga2.solve(this.population.getRuleSets());
     }
 
     protected Population buildInitialPopulation() {

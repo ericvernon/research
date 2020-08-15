@@ -1,5 +1,6 @@
 package classifier;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 public class Settings {
@@ -14,6 +15,7 @@ public class Settings {
     public double pMutation;
     public double pDontCare;
     public double pHybridMichigan;
+    public String note;
 
     public Settings setNRules(int num) {
         this.nRules = num;
@@ -68,5 +70,24 @@ public class Settings {
     public Settings setPHybridMichigan(double p) {
         this.pHybridMichigan = p;
         return this;
+    }
+
+    public Settings setNote(String note) {
+        this.note = note;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+        try {
+            for (Field field : this.getClass().getDeclaredFields()) {
+                if (!field.getName().equals("trainingPatterns"))
+                    buffer.append(field.getName()).append(" - ").append(field.get(this)).append("\n");
+            }
+        } catch (Exception ex) {
+            buffer.append(ex.getMessage());
+        }
+        return buffer.toString();
     }
 }
