@@ -170,8 +170,10 @@ public class NSGA2<T extends NSGASortable> {
     }
 
     private double[] cacheGet(T obj) {
-        if (!this.cache.containsKey(obj))
+        if (!this.cache.containsKey(obj)) {
             this.cache.put(obj, this.evaluator.evaluate(obj));
+            obj.setObjectives(this.evaluator.evaluate(obj));
+        }
         return this.cache.get(obj);
     }
 }

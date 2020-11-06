@@ -7,7 +7,7 @@ import java.util.Date;
 
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         FileData fd = new FileData();
         FileData.Output trainingData = fd.load(getFilenameFromDataset("pima", 0, "tra"));
         Settings settings = new Settings();
@@ -21,7 +21,8 @@ public class Main {
         System.out.println(time);
         long start = System.nanoTime();
 
-        Classifier classifier = new Classifier(settings, new SimpleMOP(settings), 0);
+        ResultsMaster resultsMaster = new ResultsMaster(time, "train");
+        Classifier classifier = new Classifier(settings, new GMeanErrorNRulesMOP(settings), resultsMaster, 0);
         classifier.train(25);
 
         time = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());

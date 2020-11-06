@@ -120,6 +120,8 @@ public class NSGATest {
             return this.objectives;
         }
 
+        public void setObjectives(double[] dummy) { }
+
         public void setCrowdingDistance(double crowdingDistance) {
             this.crowdingDistance = crowdingDistance;
         }

@@ -17,6 +17,7 @@ public class RuleSet implements Comparable<RuleSet>, NSGASortable {
     // Stores information about the MOP and the pareto front.
     protected int rank;
     protected double crowdingScore;
+    protected double[] objectives;
 
     public RuleSet(List<Rule> rules, Settings settings) {
         this.rules = rules;
@@ -63,9 +64,11 @@ public class RuleSet implements Comparable<RuleSet>, NSGASortable {
     @Override
     public int compareTo(RuleSet o) {
         if (this.rank != o.getParetoRank()) {
+            // Lower rank is better
             return this.rank - o.getParetoRank();
         } else {
-            return Double.compare(this.crowdingScore, o.getCrowdingDistance());
+            // Higher distance is better
+            return -1 * Double.compare(this.crowdingScore, o.getCrowdingDistance());
         }
     }
 
@@ -100,5 +103,11 @@ public class RuleSet implements Comparable<RuleSet>, NSGASortable {
 
     public int getParetoRank() {
         return this.rank;
+    }
+
+    public void setObjectives(double[] objectives) { this.objectives = objectives; }
+
+    public double[] getObjectives() {
+        return this.objectives;
     }
 }

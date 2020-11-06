@@ -38,6 +38,7 @@ public class Genetics {
 
         newRuleSets.addAll(oldRuleSets);
         this.nsga2.solve(newRuleSets);
+        Collections.sort(newRuleSets);
 
         return newRuleSets.subList(0, this.settings.nRuleSets);
     }
@@ -73,6 +74,10 @@ public class Genetics {
                 newRules.add(this.factory.rule(antecedents));
             }
         }
+
+        newRules.removeIf(r -> r.getConfidence() <= 0);
+        if (newRules.size() == 0)
+            newRules.add(this.factory.randomRule());
 
         return this.factory.makeRuleSet(newRules);
     }
@@ -119,6 +124,7 @@ public class Genetics {
             System.out.println("Error!");
         }
 
+        newRules.removeIf(r -> r.getConfidence() <= 0);
         return this.factory.makeRuleSet(newRules);
     }
 

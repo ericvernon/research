@@ -65,7 +65,7 @@ class RuleFactoryTest {
 
         // 1500 * 10 = 15,000 antecedents generated
         for (int i = 0; i < 15; i++) {
-            assertTrue(counts[i] > 900 && counts[i] < 1100);
+            assertTrue(counts[i] > 850 && counts[i] < 1150);
         }
     }
 }
