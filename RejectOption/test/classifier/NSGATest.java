@@ -143,10 +143,7 @@ public class NSGATest {
         }
     }
 
-    private static class DummyEvaluator implements Evaluator<Dummy> {
-        @Override
-        public double[] evaluate(Dummy value) {
-            return value.getObjectives();
-        }
+    private static class DummyEvaluator extends Evaluator<Dummy> {
+        public double[] evaluate(Dummy value, boolean training) { return value.getObjectives(); }
     }
 }

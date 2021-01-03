@@ -1,7 +1,6 @@
 package main;
 
 import classifier.Pattern;
-import classifier.Rule;
 import classifier.RuleSet;
 import classifier.Settings;
 import nsga.Evaluator;
@@ -31,30 +30,40 @@ public class GMeanErrorNRulesMOP extends MOP<RuleSet> {
          *
          * Then, define the g-mean as the i-th root of (ACCURACY(C1) * ACCURACY(C2) * ... ACCURACY(Ci))
          */
-        return value -> {
-            int[] correctClassifications = new int[this.settings.nOutputClasses];
-            int[] attemptedClassifications = new int[this.settings.nOutputClasses];
+        return new Evaluator<RuleSet>() {
+            @Override
+            public double[] evaluate(RuleSet value, boolean trainingData) {
+                int[] correctClassifications = new int[settings.nOutputClasses];
+                int[] attemptedClassifications = new int[settings.nOutputClasses];
 
-            for (Pattern pattern : this.settings.trainingData) {
-                int result = value.classify(pattern);
-                if (result == pattern.classLabel)
-                    correctClassifications[result]++;
-                attemptedClassifications[pattern.classLabel]++;
+                for (Pattern pattern : settings.trainingData) {
+                    int result = value.classify(pattern);
+                    if (result == pattern.classLabel)
+                        correctClassifications[result]++;
+                    attemptedClassifications[pattern.classLabel]++;
+                }
+
+                double gmean = 1;
+                double nClassesAttempted = 0;
+                for (int i = 0; i < settings.nOutputClasses; i++) {
+                    if (attemptedClassifications[i] != 0) {
+                        gmean *= ((double) correctClassifications[i] / attemptedClassifications[i]);
+                        nClassesAttempted++;
+                    }
+                }
+
+                // Calculate g-mean against all classes attempted.  However, if no patterns were attempted at all,
+                // the error rate is 100%.
+                if (nClassesAttempted == 0)
+                    gmean = 0;
+                else
+                    gmean = Math.pow(gmean, 1.0 / nClassesAttempted);
+
+                return new double[]{
+                        1 - gmean,
+                        value.getRules().size()
+                };
             }
-
-            double gmean = 1;
-            for (int i = 0; i < this.settings.nOutputClasses; i++) {
-                // If all patterns are rejected, approximate 0/0 = 1 (multiply the mean by 1, or simply, do nothing.)
-                if (attemptedClassifications[i] != 0)
-                    gmean *= ((double)correctClassifications[i] / attemptedClassifications[i]);
-            }
-
-            gmean = Math.pow(gmean, 1 / (double)this.settings.nOutputClasses);
-
-            return new double[] {
-                    1 - gmean,
-                    (double)value.getRules().size(),
-            };
         };
     }
 }

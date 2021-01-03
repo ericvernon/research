@@ -9,12 +9,12 @@ import nsga.MOP;
 
 import java.util.List;
 
-public class SimpleMOP extends MOP<RuleSet> {
+public class SingleObjectiveAccuracy extends MOP<RuleSet> {
     private final Settings settings;
 
-    public SimpleMOP(Settings settings) {
+    public SingleObjectiveAccuracy(Settings settings) {
         this.settings = settings;
-        this.nObjectives = 3;
+        this.nObjectives = 1;
     }
 
     @Override
@@ -23,23 +23,18 @@ public class SimpleMOP extends MOP<RuleSet> {
             @Override
             public double[] evaluate(RuleSet value, boolean trainingData) {
                 int correct = 0;
-                int wrong = 0;
-                int rejected = 0;
-                List<Pattern> data = trainingData ? settings.trainingData : settings.testingData;
-                for (Pattern pattern : data) {
+                int incorrect = 0;
+                List<Pattern> evaluationSet = trainingData ? settings.trainingData : settings.testingData;
+                for (Pattern pattern : evaluationSet) {
                     int result = value.classify(pattern);
                     if (result == pattern.classLabel)
                         correct++;
-                    else if (result == Rule.REJECTED_CLASS_LABEL)
-                        rejected++;
                     else
-                        wrong++;
+                        incorrect++;
                 }
 
                 return new double[] {
-                        (double)value.getRules().size(),
-                        (double)wrong / (wrong + correct),
-                        (double)rejected,
+                        (double)incorrect / (correct + incorrect),
                 };
             }
         };

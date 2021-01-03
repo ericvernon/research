@@ -40,6 +40,8 @@ public class Genetics {
         this.nsga2.solve(newRuleSets);
         Collections.sort(newRuleSets);
 
+        // This output is correctly sorted, however the pareto ranks and crowding scores may be incorrect since
+        // they were calculated using the larger population.
         return newRuleSets.subList(0, this.settings.nRuleSets);
     }
 
@@ -75,6 +77,14 @@ public class Genetics {
             }
         }
 
+        double[] thresholds;
+        if (doCrossover) {
+            thresholds = this.thresholdCrossover(first.getRejectThresholds(), second.getRejectThresholds());
+        } else {
+            thresholds = first.getRejectThresholds();
+        }
+        thresholds = this.thresholdMutation(thresholds);
+
         newRules.removeIf(r -> r.getConfidence() <= 0);
         if (newRules.size() == 0)
             newRules.add(this.factory.randomRule());
@@ -89,6 +99,54 @@ public class Genetics {
                 result[i] = this.random.nextInt(this.settings.nAntecedents);
             else
                 result[i] = antecedents[i];
+        }
+        return result;
+    }
+
+    private double[] thresholdCrossover(double[] first, double[] second) {
+        double[] result = new double[first.length];
+        for (int i = 0; i < first.length; i++) {
+            double x1 = first[i];
+            double x2 = second[i];
+            double val = alphaBlend(x1, x2);
+            result[i] = val;
+        }
+        return result;
+    }
+
+    private double alphaBlend(double x1, double x2) {
+        // Find distance between points, multiply it by alpha
+        double d = Math.abs(x2 - x1);
+        double da = d * 0.5; // alpha = 0.5
+
+        // Select a random number in the range of [min - d*a, max + d*a] where 'min' represents the smaller number
+        double min = Math.min(x1, x2) - da;
+        double max = Math.max(x1, x2) + da;
+        double val = this.random.nextFloat(); // Random in range [0, 1] (technically [0, 1))
+        val *= (max - min); // [0, (max - min)]
+        val += min; // [min, max]
+
+        // Finally, restrict the value to [0, 1] to make sense in the problem domain
+        val = Math.max(0.0, val);
+        val = Math.min(1.0, val);
+        return val;
+    }
+
+    private double[] thresholdMutation(double[] input) {
+        double[] result = new double[input.length];
+
+        // Nudge by a value in the range [-0.05, 0.05] and then restrict to the domain [0, 1]
+        for (int i = 0; i < input.length; i++) {
+            if (this.random.nextFloat() < this.settings.pMutationThreshold) {
+                double val = this.random.nextFloat() / 10; // [0, 0.1]
+                val -= 0.05; // [-0.05, 0.05]
+                val += input[i];
+                val = Math.max(0.0, val);
+                val = Math.min(1.0, val);
+                result[i] = val;
+            } else {
+                result[i] = input[i];
+            }
         }
         return result;
     }

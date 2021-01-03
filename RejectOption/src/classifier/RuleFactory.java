@@ -17,7 +17,12 @@ public class RuleFactory {
     }
 
     public RuleSet makeRuleSet(List<Rule> ruleList) {
-        return new RuleSet(ruleList, this.settings);
+        double[] thresholds = new double[this.settings.nOutputClasses];
+        return this.makeRuleSet(ruleList, thresholds);
+    }
+
+    public RuleSet makeRuleSet(List<Rule> ruleList, double[] rejectThresholds) {
+        return new RuleSet(ruleList, rejectThresholds, this.settings);
     }
 
     public Rule randomRule() {

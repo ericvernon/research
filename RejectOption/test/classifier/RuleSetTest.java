@@ -7,9 +7,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class RuleSetTest {
     @Test
     public void testCompare() {
-        RuleSet first = new RuleSet(null, null);
-        RuleSet second = new RuleSet(null, null);
-        RuleSet third = new RuleSet(null, null);
+        RuleSet first = new RuleSet(null, null, null);
+        RuleSet second = new RuleSet(null, null, null);
+        RuleSet third = new RuleSet(null, null, null);
         first.setParetoRank(1);
         first.setCrowdingDistance(0.5);
         second.setParetoRank(2);
