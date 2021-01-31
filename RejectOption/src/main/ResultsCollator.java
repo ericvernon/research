@@ -2,9 +2,7 @@ package main;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -46,7 +44,7 @@ public class ResultsCollator {
                 if (files == null)
                     continue;
                 for (File file : files) {
-                    if (file.getName().equals("experimentResults.txt")) {
+                    if (file.getName().equals("_experimentResults.txt")) {
                         double[][] data = loadRaw(file.getPath());
                         allData.add(collateSingleRun(data, 0));
                     }
@@ -63,7 +61,7 @@ public class ResultsCollator {
             for (double[] doubles : results) {
                 StringBuilder sb = new StringBuilder();
                 for (int j = 0; j < results[0].length; j++) {
-                    sb.append(doubles[j]).append('\t');
+                    sb.append(doubles[j]).append(',');
                 }
                 writer.println(sb.toString().trim());
             }
@@ -71,26 +69,6 @@ public class ResultsCollator {
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
-
-//        double[][] data = loadRaw("results\\2020.12.15.22.15.15\\run0_slice1\\experimentResults.txt");
-//        double[][] compressed = collateSingleRun(data, 0);
-//        System.out.println(data.length);
-//
-//        try {
-//            PrintWriter writer = new PrintWriter("results\\2020.12.15.22.15.15\\run0_slice1\\experimentResults_coll.txt", StandardCharsets.UTF_8);
-//            for (double[] doubles : compressed) {
-//                StringBuilder sb = new StringBuilder();
-//                for (int j = 0; j < compressed[0].length; j++) {
-//                    sb.append(doubles[j]).append('\t');
-//                }
-//                writer.println(sb.toString().trim());
-//            }
-//            writer.close();
-//
-//        } catch (IOException ex) {
-//            System.out.println("Error saving results.");
-//            System.out.println(ex.getMessage());
-//        }
     }
 
     /*
@@ -106,10 +84,6 @@ public class ResultsCollator {
         Map<Integer, Double[]> dataMap = new HashMap<>();
         ArrayList<double[]> result = new ArrayList<>();
         for (double[] datum : data) {
-//            if ((int)datum[1] != front) {
-//                flushMap(dataMap, result, nObj, front);
-//                front = (int)datum[1];
-//            }
             if ((int)datum[1] != 1)
                 continue;
             int nRules = (int) datum[objectiveIdx + 3];
@@ -199,11 +173,11 @@ public class ResultsCollator {
         try {
             sc = new Scanner(new File(filename));
             String line = sc.nextLine();
-            String[] bits = line.split("\t");
+            String[] bits = line.split(",");
             int size = bits.length;
             while (sc.hasNextLine()) {
                 line = sc.nextLine();
-                bits = line.split("\t");
+                bits = line.split(",");
                 double[] entry = new double[size];
                 for (int i = 0; i < size; i++)
                     entry[i] = Double.parseDouble(bits[i]);

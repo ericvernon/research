@@ -21,7 +21,7 @@ public class ResultsMaster {
         try {
             this.dir = String.format("results\\%s\\%s", folder, name);
             Files.createDirectories(Paths.get(this.dir));
-            PrintWriter writer = new PrintWriter(this.dir + "\\settings.txt", StandardCharsets.UTF_8);
+            PrintWriter writer = new PrintWriter(this.dir + "\\_settings.txt", StandardCharsets.UTF_8);
             writer.println(settings.toString());
             writer.close();
         } catch (IOException ex) {
@@ -36,9 +36,9 @@ public class ResultsMaster {
             for (RuleSet ruleSet : population) {
                 StringBuilder stringBuffer = new StringBuilder();
                 for (double objective : ruleSet.getObjectives()) {
-                    stringBuffer.append(objective).append("\t");
+                    stringBuffer.append(objective).append(",");
                 }
-                stringBuffer.append(ruleSet.getParetoRank()).append("\t");
+                stringBuffer.append(ruleSet.getParetoRank()).append(',');
                 stringBuffer.append(ruleSet.getCrowdingDistance());
                 writer.println(stringBuffer.toString().trim());
             }
@@ -51,38 +51,38 @@ public class ResultsMaster {
 
     public void finalizeOutput(List<RuleSet> population, MOP<RuleSet> problem) {
         try {
-            PrintWriter solutionDetails = new PrintWriter(this.dir + "\\solutionDetails.txt", StandardCharsets.UTF_8);
-            PrintWriter experimentResults = new PrintWriter(this.dir + "\\experimentResults.txt", StandardCharsets.UTF_8);
+            PrintWriter solutionDetails = new PrintWriter(this.dir + "\\_solutionDetails.txt", StandardCharsets.UTF_8);
+            PrintWriter experimentResults = new PrintWriter(this.dir + "\\_experimentResults.txt", StandardCharsets.UTF_8);
 
             StringBuilder header = new StringBuilder();
-            header.append("id\tpareto_rank_tra\tcrowding_score_tra\t");
+            header.append("id,pareto_rank_tra,crowding_score_tra,");
             for (int i = 0; i < problem.nObjectives; i++) {
-                header.append("obj_").append(i).append("_tra\t");
+                header.append("obj_").append(i).append("_tra,");
             }
             for (int i = 0; i < problem.nObjectives; i++) {
-                header.append("obj_").append(i).append("_tst\t");
+                header.append("obj_").append(i).append("_tst,");
             }
             experimentResults.println(header.toString().trim());
 
             for (int i = 0; i < population.size(); i++) {
                 RuleSet ruleSet = population.get(i);
                 StringBuilder dataEntry = new StringBuilder();
-                dataEntry.append(i).append('\t');
-                dataEntry.append(ruleSet.getParetoRank()).append('\t');
-                dataEntry.append(ruleSet.getCrowdingDistance()).append('\t');
+                dataEntry.append(i).append(',');
+                dataEntry.append(ruleSet.getParetoRank()).append(',');
+                dataEntry.append(ruleSet.getCrowdingDistance()).append(',');
 
                 Evaluator<RuleSet> evaluator = problem.getEvaluator();
                 double[] trainingResults = evaluator.evaluate(ruleSet);
                 assert(trainingResults.length == problem.nObjectives);
                 for (int j = 0; j < trainingResults.length; j++) {
                     assert(trainingResults[j] == ruleSet.getObjectives()[j]);
-                    dataEntry.append(trainingResults[j]).append('\t');
+                    dataEntry.append(trainingResults[j]).append(',');
                 }
 
                 double[] testingResults = evaluator.evaluate(ruleSet, false);
                 assert(testingResults.length == problem.nObjectives);
                 for (int j = 0; j < testingResults.length; j++) {
-                    dataEntry.append(testingResults[j]).append('\t');
+                    dataEntry.append(testingResults[j]).append(',');
                 }
                 experimentResults.println(dataEntry.toString().trim());
 
@@ -91,6 +91,12 @@ public class ResultsMaster {
                 for (Rule rule : ruleSet.getRules()) {
                     solutionDetails.println(rule);
                 }
+                solutionDetails.println();
+                solutionDetails.println("Reject Thresholds: ");
+                for (double thresh : ruleSet.getRejectThresholds()) {
+                    solutionDetails.println(thresh);
+                }
+                solutionDetails.println();
                 solutionDetails.println();
             }
 

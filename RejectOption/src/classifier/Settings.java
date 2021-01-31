@@ -29,6 +29,12 @@ public class Settings {
     public double rejectThreshold;
     public double pMutationThreshold;
 
+    // These are comments and (should) have no effect on the actual algorithm.
+    // They should be set by whatever code is instantiating and running the classifier.
+    public String mopName;
+    public String comment;
+    public String dataset;
+
     public Settings setNInputAttributes(int nInputAttributes) {
         this.nInputAttributes = nInputAttributes;
         return this;
@@ -117,6 +123,21 @@ public class Settings {
         return this;
     }
 
+    public Settings setComment(String comment) {
+        this.comment = comment;
+        return this;
+    }
+
+    public Settings setDatasetName(String datasetName) {
+        this.dataset = datasetName;
+        return this;
+    }
+
+    public Settings setMopName(String mopName) {
+        this.mopName = mopName;
+        return this;
+    }
+
     @Override
     public String toString() {
         StringBuilder buffer = new StringBuilder();
@@ -125,6 +146,8 @@ public class Settings {
                 if (!field.getName().endsWith("Data"))
                     buffer.append(field.getName()).append(" - ").append(field.get(this)).append("\n");
             }
+            buffer.append("# Training - ").append(this.trainingData.size()).append("\n");
+            buffer.append("# Testing - ").append(this.testingData.size()).append("\n");
         } catch (Exception ex) {
             buffer.append(ex.getMessage());
         }

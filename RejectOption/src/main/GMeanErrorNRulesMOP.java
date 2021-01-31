@@ -1,22 +1,26 @@
 package main;
 
 import classifier.Pattern;
+import classifier.Rule;
 import classifier.RuleSet;
 import classifier.Settings;
 import nsga.Evaluator;
 import nsga.MOP;
 
+import java.util.List;
+
 /**
- * This MOP has two objectives:
+ * This MOP has three objectives:
  * 1. Minimize (1 - GMean).  GMean is the geometric mean of the per-class accuracies, not counting rejected patterns.
- * 2. Minimize the total number of rules.
+ * 2. Minimize the total number of rejected patterns.
+ * 3. Minimize the total number of rules.
  */
 public class GMeanErrorNRulesMOP extends MOP<RuleSet> {
     private final Settings settings;
 
     public GMeanErrorNRulesMOP(Settings settings) {
         this.settings = settings;
-        this.nObjectives = 2;
+        this.nObjectives = 3;
     }
 
     @Override
@@ -35,33 +39,35 @@ public class GMeanErrorNRulesMOP extends MOP<RuleSet> {
             public double[] evaluate(RuleSet value, boolean trainingData) {
                 int[] correctClassifications = new int[settings.nOutputClasses];
                 int[] attemptedClassifications = new int[settings.nOutputClasses];
+                int rejected = 0;
+                List<Pattern> data = trainingData ? settings.trainingData : settings.testingData;
 
-                for (Pattern pattern : settings.trainingData) {
+                for (Pattern pattern : data) {
                     int result = value.classify(pattern);
                     if (result == pattern.classLabel)
                         correctClassifications[result]++;
-                    attemptedClassifications[pattern.classLabel]++;
+
+                    if (result != Rule.REJECTED_CLASS_LABEL) {
+                        attemptedClassifications[pattern.classLabel]++;
+                    } else {
+                        rejected++;
+                    }
                 }
 
                 double gmean = 1;
-                double nClassesAttempted = 0;
                 for (int i = 0; i < settings.nOutputClasses; i++) {
                     if (attemptedClassifications[i] != 0) {
                         gmean *= ((double) correctClassifications[i] / attemptedClassifications[i]);
-                        nClassesAttempted++;
                     }
                 }
 
                 // Calculate g-mean against all classes attempted.  However, if no patterns were attempted at all,
-                // the error rate is 100%.
-                if (nClassesAttempted == 0)
-                    gmean = 0;
-                else
-                    gmean = Math.pow(gmean, 1.0 / nClassesAttempted);
+                gmean = Math.pow(gmean, 1.0 / settings.nOutputClasses);
 
                 return new double[]{
                         1 - gmean,
-                        value.getRules().size()
+                        rejected,
+                        value.getRules().size(),
                 };
             }
         };

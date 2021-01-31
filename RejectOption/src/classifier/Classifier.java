@@ -52,7 +52,11 @@ public class Classifier {
                 if (r.getConfidence() > 0)
                     rules.add(r);
             }
-            this.population.add(this.factory.makeRuleSet(rules));
+            double[] rejectThresholds = new double[this.settings.nOutputClasses];
+            for (int i = 0; i < this.settings.nOutputClasses; i++) {
+                rejectThresholds[i] = this.random.nextDouble() / 2;
+            }
+            this.population.add(this.factory.makeRuleSet(rules, rejectThresholds));
         }
     }
 

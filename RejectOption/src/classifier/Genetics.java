@@ -89,7 +89,7 @@ public class Genetics {
         if (newRules.size() == 0)
             newRules.add(this.factory.randomRule());
 
-        return this.factory.makeRuleSet(newRules);
+        return this.factory.makeRuleSet(newRules, thresholds);
     }
 
     private int[] mutateAntecedents(int[] antecedents) {
@@ -183,7 +183,7 @@ public class Genetics {
         }
 
         newRules.removeIf(r -> r.getConfidence() <= 0);
-        return this.factory.makeRuleSet(newRules);
+        return this.factory.makeRuleSet(newRules, input.getRejectThresholds());
     }
 
     private Rule makeChildRule(Rule first, Rule second) {

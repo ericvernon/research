@@ -57,9 +57,9 @@ public class Rule implements Comparable<Rule> {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (int antecedent : this.antecedents) {
-            sb.append(antecedent).append(':');
+            sb.append(antecedent).append(',');
         }
-        sb.append("__").append(this.getClassLabel()).append("__").append(this.getConfidence());
+        sb.append(this.getClassLabel()).append(',').append(this.getConfidence());
         return sb.toString();
     }
 }
