@@ -22,8 +22,19 @@ public class Settings {
     public int nGenerations;
     public int rulesetMinRules;
 
+    /*
+     * STATIC: A single, user specified reject threshold is used which never changes
+     * SINGLE_VARIABLE: Each ruleset evolves a single variable to serve as the reject threshold
+     * PER_CLASS: Each ruleset evolves a c-length vector, where each entry represents the reject threshold for class c
+     * PER_RULE: Each rule contains a threshold which can be evolved in addition to its antecedents
+     *
+     * The reject method is applied in the RuleSet.getWinningRule method.  To simplify the design (and increase
+     * the explanation / maintenance cost ;)), each Ruleset always evolves a c-length vector.  In the SINGLE_VARIABLE
+     * case, only the first entry is used and the rest ignored.  In all other cases, the vector is ignored entirely.
+     * Similarly, Rules always evolve a reject threshold, but that is only used when PER_RULE is set.
+     */
     public enum RejectStrategies {
-        PER_CLASS, SINGLE_VARIABLE, STATIC,
+        PER_CLASS, SINGLE_VARIABLE, STATIC, PER_RULE,
     }
     public RejectStrategies rejectStrategy;
     public double rejectThreshold;

@@ -32,32 +32,21 @@ public class RuleSet implements Comparable<RuleSet>, NSGASortable {
 
     public int classify(Pattern pattern) {
         Rule winningRule = this.getWinningRule(pattern);
-        if (winningRule == null || winningRule.getConfidence() == Rule.REJECTED_CLASS_LABEL)
+        if (winningRule == null || winningRule.getClassLabel() == Rule.REJECTED_CLASS_LABEL)
             return Rule.REJECTED_CLASS_LABEL;
         return winningRule.getClassLabel();
     }
 
     // Get the winning rule for a pattern, or null if no pattern has a weight * compatibility product greater than 0.
     public Rule getWinningRule(Pattern pattern) {
-//        double bestScore = 0.0;
-//        Rule bestRule = null;
-//        for (Rule rule : this.rules) {
-//            double score = rule.getConfidence() * this.calculator.calculateCompatibility(rule, pattern);
-//            if (score > bestScore) {
-//                bestScore = score;
-//                bestRule = rule;
-//            }
-//        }
         ScoreToRule[] bestScores = new ScoreToRule[this.settings.nOutputClasses];
         // Seed one entry for each output class, because Arrays.sort will choke on null values
         // (It's rare but technically possible for a class to be unsupported.)
         for (int i = 0; i < this.settings.nOutputClasses; i++)
             bestScores[i] = new ScoreToRule(0.0, null);
-        bestScores[0] = new ScoreToRule(0.0, null);
-        bestScores[1] = new ScoreToRule(0.0, null);
         for (Rule rule : this.rules) {
             int label = rule.getClassLabel();
-            // Rules with negative weight have the rejected class label assigned - just skip these
+            // Rules can sometimes have the rejected class label assigned (e.g. if zero weight) - just skip these
             if (label == Rule.REJECTED_CLASS_LABEL)
                 continue;
             double score = rule.getConfidence() * this.calculator.calculateCompatibility(rule, pattern);
@@ -81,15 +70,17 @@ public class RuleSet implements Comparable<RuleSet>, NSGASortable {
     }
 
     private double lookupThreshold(Rule winner) {
+        // This can happen if no rule has a positive matching degree with the pattern
+        if (winner == null)
+            return 0.0;
         if (this.settings.rejectStrategy == Settings.RejectStrategies.STATIC)
             return this.settings.rejectThreshold;
         if (this.settings.rejectStrategy == Settings.RejectStrategies.SINGLE_VARIABLE)
             return this.rejectThresholds[0];
-        if (this.settings.rejectStrategy == Settings.RejectStrategies.PER_CLASS) {
-            if (winner == null)
-                return 0.0;
+        if (this.settings.rejectStrategy == Settings.RejectStrategies.PER_CLASS)
             return this.rejectThresholds[winner.getClassLabel()];
-        }
+        if (this.settings.rejectStrategy == Settings.RejectStrategies.PER_RULE)
+            return winner.getRejectThreshold();
         System.out.println("Error!  Unknown reject strategy used.");
         return 0.0;
     }

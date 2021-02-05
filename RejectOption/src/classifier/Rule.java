@@ -4,16 +4,18 @@ public class Rule implements Comparable<Rule> {
     public static final int REJECTED_CLASS_LABEL = -1;
 
     private final int[] antecedents;
+    private double rejectThreshold;
     private final int classLabel;
     private final double confidence; // CF in the literature
     private int fitness;
 
-    public Rule(int[] antecedents, int classLabel, double confidence) {
-        this(antecedents, classLabel, confidence, 0);
+    public Rule(int[] antecedents, double rejectThreshold, int classLabel, double confidence) {
+        this(antecedents, rejectThreshold, classLabel, confidence, 0);
     }
 
-    public Rule(int[] antecedents, int classLabel, double confidence, int fitness) {
+    public Rule(int[] antecedents, double rejectThreshold, int classLabel, double confidence, int fitness) {
         this.antecedents = antecedents;
+        this.rejectThreshold = rejectThreshold;
         this.classLabel = classLabel;
         this.confidence = confidence;
         this.fitness = fitness;
@@ -22,7 +24,7 @@ public class Rule implements Comparable<Rule> {
     public Rule deepCopy() {
         int[] antecedents  = new int[this.antecedents.length];
         System.arraycopy(this.antecedents, 0, antecedents, 0, antecedents.length);
-        return new Rule(antecedents, this.classLabel, this.confidence, this.fitness);
+        return new Rule(antecedents, this.rejectThreshold, this.classLabel, this.confidence, this.fitness);
     }
 
     @Override
@@ -52,6 +54,14 @@ public class Rule implements Comparable<Rule> {
 
     public int getFitness() {
         return this.fitness;
+    }
+
+    public double getRejectThreshold() {
+        return this.rejectThreshold;
+    }
+
+    public void setRejectThreshold(double threshold) {
+        this.rejectThreshold = threshold;
     }
 
     public String toString() {

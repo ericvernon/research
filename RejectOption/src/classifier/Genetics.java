@@ -57,13 +57,15 @@ public class Genetics {
             for (int i = 0; i < nRules; i++) {
                 int[] antecedents = firstRules.get(i).getAntecedents();
                 antecedents = this.mutateAntecedents(antecedents);
-                newRules.add(this.factory.rule(antecedents));
+                double threshold = this.mutateThreshold(firstRules.get(i).getRejectThreshold());
+                newRules.add(this.factory.rule(antecedents, threshold));
             }
             nRules = this.random.nextInt(secondRules.size()) + 1;
             for (int i = 0; i < nRules; i++) {
                 int[] antecedents = secondRules.get(i).getAntecedents();
                 antecedents = this.mutateAntecedents(antecedents);
-                newRules.add(this.factory.rule(antecedents));
+                double threshold = this.mutateThreshold(secondRules.get(i).getRejectThreshold());
+                newRules.add(this.factory.rule(antecedents, threshold));
             }
 
             if (newRules.size() > this.settings.nRulesMax)
@@ -73,7 +75,8 @@ public class Genetics {
             for (Rule rule : first.getRules()) {
                 int[] antecedents = rule.getAntecedents();
                 antecedents = this.mutateAntecedents(antecedents);
-                newRules.add(this.factory.rule(antecedents));
+                double threshold = this.mutateThreshold(rule.getRejectThreshold());
+                newRules.add(this.factory.rule(antecedents, threshold));
             }
         }
 
@@ -83,8 +86,10 @@ public class Genetics {
         } else {
             thresholds = first.getRejectThresholds();
         }
-        thresholds = this.thresholdMutation(thresholds);
+        thresholds = this.mutateThresholds(thresholds);
 
+        // Remove rules with non-positive CFq (worthless rules)
+        // It is rare but possible that we are left with none, in that case just make a random rule.
         newRules.removeIf(r -> r.getConfidence() <= 0);
         if (newRules.size() == 0)
             newRules.add(this.factory.randomRule());
@@ -132,23 +137,35 @@ public class Genetics {
         return val;
     }
 
-    private double[] thresholdMutation(double[] input) {
+    private double[] mutateThresholds(double[] input) {
         double[] result = new double[input.length];
 
         // Nudge by a value in the range [-0.05, 0.05] and then restrict to the domain [0, 1]
         for (int i = 0; i < input.length; i++) {
             if (this.random.nextFloat() < this.settings.pMutationThreshold) {
-                double val = this.random.nextFloat() / 10; // [0, 0.1]
-                val -= 0.05; // [-0.05, 0.05]
-                val += input[i];
-                val = Math.max(0.0, val);
-                val = Math.min(1.0, val);
-                result[i] = val;
+                result[i] = this.mutatedThresholdValue(input[i]);
             } else {
                 result[i] = input[i];
             }
         }
         return result;
+    }
+
+    private double mutateThreshold(double input) {
+        if (this.random.nextFloat() < this.settings.pMutationThreshold) {
+            return this.mutatedThresholdValue(input);
+        }
+        return input;
+    }
+
+    private double mutatedThresholdValue(double input) {
+        // Nudge by a value in the range [-0.05, 0.05] and then restrict to the domain [0, 1]
+        double val = this.random.nextFloat() / 10; // [0, 0.1]
+        val -= 0.05; // [-0.05, 0.05]
+        input += val;
+        input = Math.max(0.0, input);
+        input = Math.min(1.0, input);
+        return input;
     }
 
     public RuleSet michiganEvolution(RuleSet input) {
@@ -189,6 +206,7 @@ public class Genetics {
     private Rule makeChildRule(Rule first, Rule second) {
         int[] antecedents = new int[this.settings.nInputAttributes];
 
+        double threshold;
         if (this.random.nextFloat() < this.settings.pCrossover) {
             for (int i = 0; i < antecedents.length; i++) {
                 if (this.random.nextFloat() < 0.5)
@@ -196,11 +214,14 @@ public class Genetics {
                 else
                     antecedents[i] = second.getAntecedents()[i];
             }
+            threshold = alphaBlend(first.getRejectThreshold(), second.getRejectThreshold());
         } else {
             System.arraycopy(first.getAntecedents(), 0, antecedents, 0, antecedents.length);
+            threshold = first.getRejectThreshold();
         }
 
         antecedents = this.mutateAntecedents(antecedents);
-        return this.factory.rule(antecedents);
+        threshold = this.mutateThreshold(threshold);
+        return this.factory.rule(antecedents, threshold);
     }
 }

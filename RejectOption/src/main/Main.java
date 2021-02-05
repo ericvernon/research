@@ -16,20 +16,20 @@ public class Main {
                 .setNRuleSets(200).setNRuleInitial(20).setNRulesMax(40)
                 .setPCrossover(0.9).setPMutation(0.1).setPDontCareHeuristicRule(0.8)
                 .setPHybridMichigan(0.5).setMichiganNReplace(0.2)
-                .setRejectStrategy(Settings.RejectStrategies.PER_CLASS)
+                .setRejectStrategy(Settings.RejectStrategies.SINGLE_VARIABLE)
                 .setPMutationThreshold(0.25)
-                .setNGenerations(750);
+                .setNGenerations(1000);
         String startTime = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
         System.out.println(startTime);
 
         // Runs / cross validation settings.  Assumes the data has already been prepared.  In general, I generated the
         // data "slices" using the Keel software GUI, then used a PHP script to normalize and format the data.
         // How many times k-fold cross validation should be run.
-        int runs = 5;
+        int runs = 1;
         // The 'k' value.
         int slicesPerRun = 10;
         String dataset = "pima";
-        settings.setComment("iris test for ML class");
+        settings.setComment("Pima, 1x10 1k gens just to get something out the door. SINGLE THRESH");
 
         FileData fd = new FileData();
         for (int run = 0; run < runs; run++) {

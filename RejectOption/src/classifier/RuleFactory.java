@@ -70,8 +70,17 @@ public class RuleFactory {
     }
 
     public Rule rule(int[] antecedents) {
+        double threshold = this.initialRejectThreshold();
+        return this.rule(antecedents, threshold);
+    }
+
+    public Rule rule(int[] antecedents, double threshold) {
         LabelAndWeight labelAndWeight = this.calculateRule(antecedents);
-        return new Rule(antecedents, labelAndWeight.label, labelAndWeight.weight);
+        return new Rule(antecedents, threshold, labelAndWeight.label, labelAndWeight.weight);
+    }
+
+    private double initialRejectThreshold() {
+        return this.random.nextDouble() / 3;
     }
 
     private LabelAndWeight calculateRule(int[] antecedents) {

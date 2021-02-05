@@ -72,20 +72,6 @@ public class NSGA2<T extends NSGASortable> {
                 }
             }
 
-//            for (int j = i + 1; j < nPoints; j++) {
-//                T second = points.get(j);
-//                int dom = this.dominates(first, second);
-//                if (dom == 1) {
-//                    dominatedSolutions.get(first).add(second);
-//                    int val = dominationCount.get(second);
-//                    dominationCount.put(second, val + 1);
-//                } else if (dom == -1) {
-//                    dominatedSolutions.get(second).add(first);
-//                    int val = dominationCount.get(first);
-//                    dominationCount.put(first, val + 1);
-//                }
-//            }
-
             if (dominationCount.get(first) == 0) {
                 first.setParetoRank(1);
                 f1.add(first);
