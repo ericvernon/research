@@ -27,14 +27,14 @@ public class ClassifierEval {
             }
             int label = Integer.parseInt(bits[bits.length - 2]);
             double cfq = Double.parseDouble(bits[bits.length - 1]);
-            Rule rule = new Rule(antecedents, label, cfq);
+            Rule rule = new Rule(antecedents, 0.0, label, cfq);
             rules.add(rule);
         }
 
         Settings settings = new Settings();
-        settings.setNOutputClasses(2).setNInputAttributes(2)
-                .setRejectStrategy(Settings.RejectStrategies.PER_CLASS)
-                .setRejectThreshold(0.9);
+        settings.setNOutputClasses(34).setNInputAttributes(2)
+                .setRejectStrategy(Settings.RejectStrategies.STATIC)
+                .setRejectThreshold(0.0);
         RuleSet ruleSet = new RuleSet(rules, new double[] {
                 0.4,
                 0.73
