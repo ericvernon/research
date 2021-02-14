@@ -86,7 +86,7 @@ public class RuleSet implements Comparable<RuleSet>, NSGASortable {
     }
 
     // Update the fitness of the rules based to prepare for a Michigan evolution
-    // This is not done when the ruleset is initialized because not every ruleset will undergo Michigan evolution
+    // This is done when the ruleset is initialized because not every ruleset will undergo Michigan evolution
     public void setRuleFitness() {
         for (Rule rule: this.rules)
             rule.setFitness(0);
@@ -96,6 +96,15 @@ public class RuleSet implements Comparable<RuleSet>, NSGASortable {
                 winner.incrementFitness();
             }
         }
+    }
+
+    public void removeZeroFitnessRules() {
+        this.setRuleFitness();
+        this.rules.removeIf(rule -> rule.getFitness() == 0);
+    }
+
+    public void addRule(Rule rule) {
+        this.rules.add(rule);
     }
 
     // This implementation is *not* considered consistent with equals.

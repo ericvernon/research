@@ -37,6 +37,12 @@ public class Genetics {
         }
 
         newRuleSets.addAll(oldRuleSets);
+        for (RuleSet ruleSet : newRuleSets) {
+            ruleSet.removeZeroFitnessRules();
+            if (ruleSet.getRules().size() == 0)
+                ruleSet.addRule(this.factory.randomRule());
+        }
+
         this.nsga2.solve(newRuleSets);
         Collections.sort(newRuleSets);
 
