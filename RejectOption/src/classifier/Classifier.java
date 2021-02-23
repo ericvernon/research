@@ -32,11 +32,9 @@ public class Classifier {
     public void train() {
         NSGA2<RuleSet> nsga2 = new NSGA2<RuleSet>(this.mop.nObjectives, this.mop.getEvaluator());
         nsga2.solve(this.population);
-//        this.resultsMaster.recordPopulation("gen0", this.population);
         Genetics genetics = new Genetics(this.factory, this.random, this.settings, nsga2);
         for (int i = 0; i < this.settings.nGenerations; i++) {
             this.population = genetics.hybridEvolution(this.population);
-//            this.resultsMaster.recordPopulation("gen" + Integer.toString(i + 1), this.population);
         }
         nsga2.solve(this.population);
         Collections.sort(this.population);

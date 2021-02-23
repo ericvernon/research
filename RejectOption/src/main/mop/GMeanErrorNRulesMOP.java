@@ -1,4 +1,4 @@
-package main;
+package main.mop;
 
 import classifier.Pattern;
 import classifier.Rule;
@@ -21,6 +21,12 @@ public class GMeanErrorNRulesMOP extends MOP<RuleSet> {
     public GMeanErrorNRulesMOP(Settings settings) {
         this.settings = settings;
         this.nObjectives = 3;
+    }
+
+    public String[] getObjectiveNames() {
+        return new String[] {
+                "gMeanError", "nRejected", "nRules"
+        };
     }
 
     @Override

@@ -17,6 +17,10 @@ public class SingleObjectiveAccuracy extends MOP<RuleSet> {
         this.nObjectives = 1;
     }
 
+    public String[] getObjectiveNames() {
+        return new String[] { "simpleError" };
+    }
+
     @Override
     public Evaluator<RuleSet> getEvaluator() {
         return new Evaluator<RuleSet>() {

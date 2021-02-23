@@ -66,10 +66,13 @@ public class Rule implements Comparable<Rule> {
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("Aq=");
         for (int antecedent : this.antecedents) {
             sb.append(antecedent).append(',');
         }
-        sb.append(this.getClassLabel()).append(',').append(this.getConfidence());
+        sb.append("C=").append(this.getClassLabel()).append(",");
+        sb.append("CF=").append(this.getConfidence()).append(",");
+        sb.append("Rej=").append(this.getRejectThreshold());
         return sb.toString();
     }
 }

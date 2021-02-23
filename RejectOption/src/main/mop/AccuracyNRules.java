@@ -1,4 +1,4 @@
-package main;
+package main.mop;
 
 import classifier.Pattern;
 import classifier.Rule;
@@ -9,12 +9,16 @@ import nsga.MOP;
 
 import java.util.List;
 
-public class SimpleMOP extends MOP<RuleSet> {
+public class AccuracyNRules extends MOP<RuleSet> {
     private final Settings settings;
 
-    public SimpleMOP(Settings settings) {
+    public AccuracyNRules(Settings settings) {
         this.settings = settings;
-        this.nObjectives = 3;
+        this.nObjectives = 2;
+    }
+
+    public String[] getObjectiveNames() {
+        return new String[] {"simpleError", "nRules"};
     }
 
     @Override
@@ -22,24 +26,17 @@ public class SimpleMOP extends MOP<RuleSet> {
         return new Evaluator<RuleSet>() {
             @Override
             public double[] evaluate(RuleSet value, boolean trainingData) {
-                int correct = 0;
                 int wrong = 0;
-                int rejected = 0;
                 List<Pattern> data = trainingData ? settings.trainingData : settings.testingData;
                 for (Pattern pattern : data) {
                     int result = value.classify(pattern);
-                    if (result == pattern.classLabel)
-                        correct++;
-                    else if (result == Rule.REJECTED_CLASS_LABEL)
-                        rejected++;
-                    else
+                    if (result != pattern.classLabel)
                         wrong++;
                 }
 
                 return new double[] {
+                        (double)wrong / data.size(),
                         (double)value.getRules().size(),
-                        (double)wrong / (wrong + correct),
-                        (double)rejected,
                 };
             }
         };

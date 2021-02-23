@@ -19,8 +19,13 @@ public class Settings {
     public double pHybridMichigan;
     public double pDontCareHeuristicRule;
     public double michiganNReplace;
-    public int nGenerations;
     public int rulesetMinRules;
+
+    public int nRuns;
+    public int nGenerations;
+    public String datasetName;
+    public String mopName;
+    public String experimentTag;
 
     /*
      * STATIC: A single, user specified reject threshold is used which never changes
@@ -39,12 +44,6 @@ public class Settings {
     public RejectStrategies rejectStrategy;
     public double rejectThreshold;
     public double pMutationThreshold;
-
-    // These are comments and (should) have no effect on the actual algorithm.
-    // They should be set by whatever code is instantiating and running the classifier.
-    public String mopName;
-    public String comment;
-    public String dataset;
 
     public Settings setNInputAttributes(int nInputAttributes) {
         this.nInputAttributes = nInputAttributes;
@@ -134,19 +133,20 @@ public class Settings {
         return this;
     }
 
-    public Settings setComment(String comment) {
-        this.comment = comment;
-        return this;
+    public void setNRuns(int nRuns) {
+        this.nRuns = nRuns;
     }
 
-    public Settings setDatasetName(String datasetName) {
-        this.dataset = datasetName;
-        return this;
+    public void setMopName(String name) {
+        this.mopName = name;
     }
 
-    public Settings setMopName(String mopName) {
-        this.mopName = mopName;
-        return this;
+    public void setDatasetName(String name) {
+        this.datasetName = name;
+    }
+
+    public void setExperimentTag(String tag) {
+        this.experimentTag = tag;
     }
 
     @Override

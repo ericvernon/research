@@ -39,8 +39,12 @@ public class Genetics {
         newRuleSets.addAll(oldRuleSets);
         for (RuleSet ruleSet : newRuleSets) {
             ruleSet.removeZeroFitnessRules();
-            if (ruleSet.getRules().size() == 0)
-                ruleSet.addRule(this.factory.randomRule());
+            if (ruleSet.getRules().size() == 0) {
+                assert(ruleSet.getBadPatterns().size() > 0);
+                ruleSet.addRule(this.factory.heuristicRule(
+                        ruleSet.getBadPatterns().get(0)
+                ));
+            }
         }
 
         this.nsga2.solve(newRuleSets);
@@ -57,6 +61,7 @@ public class Genetics {
         List<Rule> firstRules = first.getRules();
         List<Rule> secondRules = second.getRules();
 
+        double[] classThresholds;
         if (doCrossover) {
             // Select [1, N] rules from each parent, and then randomly prune if over the limit
             int nRules = this.random.nextInt(firstRules.size()) + 1;
@@ -76,6 +81,9 @@ public class Genetics {
 
             if (newRules.size() > this.settings.nRulesMax)
                 newRules = this.util.randomSubset(newRules, this.settings.nRulesMax);
+
+            classThresholds = this.thresholdCrossover(first.getRejectThresholds(), second.getRejectThresholds());
+            classThresholds = this.mutateThresholds(classThresholds);
         } else {
             // Select all rules from the first parent
             for (Rule rule : first.getRules()) {
@@ -84,15 +92,9 @@ public class Genetics {
                 double threshold = this.mutateThreshold(rule.getRejectThreshold());
                 newRules.add(this.factory.rule(antecedents, threshold));
             }
+            classThresholds = first.getRejectThresholds();
+            classThresholds = this.mutateThresholds(classThresholds);
         }
-
-        double[] thresholds;
-        if (doCrossover) {
-            thresholds = this.thresholdCrossover(first.getRejectThresholds(), second.getRejectThresholds());
-        } else {
-            thresholds = first.getRejectThresholds();
-        }
-        thresholds = this.mutateThresholds(thresholds);
 
         // Remove rules with non-positive CFq (worthless rules)
         // It is rare but possible that we are left with none, in that case just make a random rule.
@@ -100,7 +102,7 @@ public class Genetics {
         if (newRules.size() == 0)
             newRules.add(this.factory.randomRule());
 
-        return this.factory.makeRuleSet(newRules, thresholds);
+        return this.factory.makeRuleSet(newRules, classThresholds);
     }
 
     private int[] mutateAntecedents(int[] antecedents) {
@@ -183,7 +185,7 @@ public class Genetics {
 
         Util util = new Util(this.random);
         int nReplace = (int)Math.ceil(this.settings.michiganNReplace * oldRules.size());
-        int numHeuristicRules = Math.min(nReplace, heuristicPatterns.size());
+        int numHeuristicRules = Math.min(nReplace / 2, heuristicPatterns.size());
         int numGeneticRules = nReplace - numHeuristicRules;
         int numKeep = oldRules.size() - nReplace;
 
@@ -206,7 +208,9 @@ public class Genetics {
         }
 
         newRules.removeIf(r -> r.getConfidence() <= 0);
-        return this.factory.makeRuleSet(newRules, input.getRejectThresholds());
+        double[] rejectThresholds = new double[settings.nOutputClasses];
+        System.arraycopy(input.getRejectThresholds(), 0, rejectThresholds, 0, settings.nOutputClasses);
+        return this.factory.makeRuleSet(newRules, rejectThresholds);
     }
 
     private Rule makeChildRule(Rule first, Rule second) {
